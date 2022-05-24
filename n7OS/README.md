@@ -1,1 +1,3 @@
-#N7OS Project
+# N7OS Project
+
+Creating a new Operational System
