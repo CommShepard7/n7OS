@@ -1,6 +1,8 @@
 #include <n7OS/console.h>
 #include <inttypes.h>
 #include <n7OS/cpu.h>
+#include <n7OS/time.h>
+#include <stdio.h>
 
 #define MAX_WIDTH 79
 #define MAX_LENGTH 24
@@ -17,7 +19,7 @@ typedef struct {
     uint8_t color;
 } Visual;
 
-Console console = {.scr_tab = (uint16_t *) 0xB8000, .line = 0, .column = 0};
+Console console = {.scr_tab = (uint16_t *) 0xB8000, .line = 1, .column = 0};
 Visual visual = {.bl = 1, .background = 0, .color = 15};
 
 
@@ -29,6 +31,41 @@ void lineShift() {
             console.scr_tab[posLower] = console.scr_tab[posUpper];
         }
     }
+}
+
+void lineClear(int lineNumber) {
+    for(int k = 0; k <= MAX_WIDTH; k++) {
+        int pos = (80*lineNumber + k);
+        console.scr_tab[pos]= ((visual.bl*256 + (visual.background<<4) + visual.color) << 8) + '\0';
+    }
+}
+
+char * timeCharArray(int t) {
+    char * timeVal = "00";
+    if(t < 10) {
+        timeVal[0] = t + '0';
+        timeVal[1] = 0 + '0';
+    } else {
+        timeVal[0] = t - (t/10)*10 + '0';
+        timeVal[1] = t/10 + '0';
+    }
+    return timeVal;
+}
+
+void consolePutTime(Time* t) {
+    lineClear(0);
+    char* s = timeCharArray(t->seconds);
+    console.scr_tab[77] = ((visual.bl*256 + (visual.background<<4) + 10) << 8) + s[1];
+    console.scr_tab[78] = ((visual.bl*256 + (visual.background<<4) + 10) << 8) + s[0];
+    console.scr_tab[79] = ((visual.bl*256 + (visual.background<<4) + 10) << 8) + 's';   
+    char* m = timeCharArray(t->minutes);
+    console.scr_tab[74] = ((visual.bl*256 + (visual.background<<4) + 10) << 8) + m[1];
+    console.scr_tab[75] = ((visual.bl*256 + (visual.background<<4) + 10) << 8) + m[0];
+    console.scr_tab[76] = ((visual.bl*256 + (visual.background<<4) + 10) << 8) + 'm';
+    char* h = timeCharArray(t->hours);
+    console.scr_tab[71] = ((visual.bl*256 + (visual.background<<4) + 10) << 8) + h[1];
+    console.scr_tab[72] = ((visual.bl*256 + (visual.background<<4) + 10) << 8) + h[0];
+    console.scr_tab[73] = ((visual.bl*256 + (visual.background<<4) + 10) << 8) + 'h';     
 }
 
 void charUpdatePos() {
@@ -63,22 +100,6 @@ void htUpdatePos() {
     console_putbytes(tabSpace,8);
 }
 
-/*
-void htUpdatePos() {
-    if(console.column-MAX_WIDTH >= 8) {
-        console.column+=8;
-    } else {
-        if(console.line < MAX_LENGTH) {
-            console.line++;
-            console.column = 8-(MAX_WIDTH-console.column);
-        } else {
-            console.line = 0;
-            console.column = 8-(MAX_WIDTH-console.column);
-        }
-    }
-}
-*/
-
 void lfUpdatePos() {
     if(console.line < MAX_LENGTH) {
         console.line++;
@@ -89,14 +110,14 @@ void lfUpdatePos() {
 }
 
 void ffUpdatePos() {
-    console.line = 0;
+    console.line = 1;
     console.column = 0;
-    char emptyStr[(MAX_LENGTH+1)*(MAX_WIDTH+1)];
-    for(int k; k < (MAX_LENGTH+1)*(MAX_WIDTH+1); k++) {
+    char emptyStr[(MAX_LENGTH)*(MAX_WIDTH+1)];
+    for(int k; k < (MAX_LENGTH)*(MAX_WIDTH+1); k++) {
         emptyStr[k] = '\0';
     }
-    console_putbytes(emptyStr,(MAX_LENGTH+1)*(MAX_WIDTH+1));
-    console.line = 0;
+    console_putbytes(emptyStr,(MAX_LENGTH)*(MAX_WIDTH+1));
+    console.line = 1;
     console.column = 0;
 }
 

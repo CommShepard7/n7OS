@@ -5,10 +5,7 @@
 extern void handler_IT();
 
 void handler_en_C() {
-    printf("Interruption 50");
+    printf("Interruption 500");
 }
 
-void init_irq() {
-    init_irq_entry(50,(uint32_t) handler_en_C);
-}
 
