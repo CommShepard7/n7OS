@@ -1,2 +1,2 @@
 # n7OS
-N7 Operating System
+N7 Operating System Project
